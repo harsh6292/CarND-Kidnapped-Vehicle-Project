@@ -25,6 +25,27 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
 	// Add random Gaussian noise to each particle.
 	// NOTE: Consult particle_filter.h for more information about this method (and others in this file).
 
+	num_particles = 100;
+
+	default_random_engine random_gen;
+
+	normal_distribution<double> dist_x(x, std[0]);
+	normal_distribution<double> dist_y(y, std[1]);
+	normal_distribution<double> dist_theta(theta, std[2]);
+
+	for (int i = 0; i < num_particles; i++) {
+		Particle particle;
+		particle.id = i;
+		particle.x = dist_x(random_gen);
+		particle.y = dist_y(random_gen);
+		particle.theta = dist_theta(random_gen);
+		particle.weight = 1;
+
+		particles.push_back(particle);
+		weights.push_back(1);
+	}
+
+	is_initialized = true;
 }
 
 void ParticleFilter::prediction(double delta_t, double std_pos[], double velocity, double yaw_rate) {
@@ -32,6 +53,34 @@ void ParticleFilter::prediction(double delta_t, double std_pos[], double velocit
 	// NOTE: When adding noise you may find std::normal_distribution and std::default_random_engine useful.
 	//  http://en.cppreference.com/w/cpp/numeric/random/normal_distribution
 	//  http://www.cplusplus.com/reference/random/default_random_engine/
+
+	default_random_engine random_gen;
+	double pred_x;
+	double pred_y;
+	double pred_theta;
+
+	// Update particles position and heading
+	for (int i = 0; i < num_particles; i++) {
+
+		if (yaw_rate == 0) {
+			pred_x = particles[i].x + velocity * delta_t * cos(particles[i].theta);
+			pred_y = particles[i].y + velocity * delta_t * sin(particles[i].theta);
+			pred_theta = particles[i].theta;
+		} else {
+			pred_x = particles[i].x + velocity/yaw_rate * (sin(particles[i].theta + yaw_rate*delta_t) - sin(particles[i].theta));
+			pred_y = particles[i].y + velocity/yaw_rate * (cos(particles[i].theta) - cos(particles[i].theta + yaw_rate*delta_t));
+			pred_theta = particles[i].theta + yaw_rate*delta_t;
+		}
+
+
+		normal_distribution<double> dist_x(pred_x, std_pos[0]);
+		normal_distribution<double> dist_y(pred_y, std_pos[1]);
+		normal_distribution<double> dist_theta(pred_theta, std_pos[2]);
+
+		particles[i].x = dist_x(random_gen);
+		particles[i].y = dist_y(random_gen);
+		particles[i].theta = dist_theta(random_gen);
+	}
 
 }
 
