@@ -77,8 +77,9 @@ public:
      *   a nearest-neighbors data association).
      * @param map_landmark_list Vector of Map landmarks positions
      * @param observations Vector of landmark observations in map coordinates as observed by vehicle
+     * @output returns the index of the map landmark observation which is closest to the current observations
      */
-    void dataAssociation(std::vector<Map::single_landmark_s> map_landmark_list, std::vector<LandmarkObs>& observations);
+    int dataAssociation(std::vector<Map::single_landmark_s> map_landmark_list, LandmarkObs& single_observation);
 
     /**
      * updateWeights Updates the weights for each particle based on the likelihood of the 
